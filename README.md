@@ -1,5 +1,8 @@
 # Gestories
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.geniusrus/gestories/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.geniusrus/gestories)
+[![codebeat badge](https://codebeat.co/badges/1c94bbef-63bb-45be-bad8-88fe7cbda032)](https://codebeat.co/projects/github-com-geniusrus-gestories-main)
+
 ## Short description
 
 Android library for handling gestures on view like in Instagram Stories
