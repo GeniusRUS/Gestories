@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.config.KotlinCompilerVersion
 plugins {
     id("com.android.application")
     kotlin("android")
+    id("androidx.navigation.safeargs.kotlin")
 }
 
 android {
@@ -23,6 +24,8 @@ android {
     }
 }
 
+val navigationVer = "2.3.5"
+
 dependencies {
     implementation(project(":gestories"))
     implementation(kotlin("stdlib-jdk7", KotlinCompilerVersion.VERSION))
@@ -30,6 +33,10 @@ dependencies {
     implementation("androidx.core:core-ktx:1.6.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.0")
     implementation("com.google.android.material:material:1.4.0")
+
+    // Navigation
+    implementation("androidx.navigation:navigation-fragment-ktx:$navigationVer")
+    implementation("androidx.navigation:navigation-ui-ktx:$navigationVer")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-core:3.11.2")

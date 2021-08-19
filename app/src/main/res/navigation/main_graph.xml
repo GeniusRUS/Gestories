@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_graph"
+    app:startDestination="@id/startFragment">
+
+    <fragment
+        android:id="@+id/startFragment"
+        android:name="com.genius.example.StartFragment"
+        android:label="start_fragment"
+        tools:layout="@layout/start_fragment" >
+        <action
+            android:id="@+id/action_startFragment_to_staticFragment"
+            app:destination="@id/staticFragment" />
+        <action
+            android:id="@+id/action_startFragment_to_scrollFragment"
+            app:destination="@id/scrollFragment" />
+        <action
+            android:id="@+id/action_startFragment_to_viewPagerFragment"
+            app:destination="@id/viewPagerFragment" />
+        <action
+            android:id="@+id/action_startFragment_to_bottomSheetDialogFragment"
+            app:destination="@id/bottomSheetDialogFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/staticFragment"
+        android:name="com.genius.example.StaticFragment"
+        android:label="static_fragment"
+        tools:layout="@layout/static_fragment" />
+    <fragment
+        android:id="@+id/scrollFragment"
+        android:name="com.genius.example.ScrollFragment"
+        android:label="scroll_fragment"
+        tools:layout="@layout/scroll_fragment" />
+    <fragment
+        android:id="@+id/viewPagerFragment"
+        android:name="com.genius.example.ViewPagerFragment"
+        android:label="viewpager_fragment"
+        tools:layout="@layout/viewpager_fragment" />
+    <dialog
+        android:id="@+id/bottomSheetDialogFragment"
+        android:name="com.genius.example.BottomSheetDialogFragment"
+        android:label="bottomsheet_fragment_dialog"
+        tools:layout="@layout/bottomsheet_fragment_dialog" />
+</navigation>

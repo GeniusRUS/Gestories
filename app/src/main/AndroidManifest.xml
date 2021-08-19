@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Gestories">
         <activity
-            android:name="com.genius.example.MainActivity"
+            android:name="com.genius.example.HostActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

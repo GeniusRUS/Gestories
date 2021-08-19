@@ -18,6 +18,11 @@ Add to your .gradle file:
 implementation "io.github.geniusrus:gestories:$latest_version"
 ```
 
+## ToDo (work in progress)
+
+1. Handle WindowInsets correctly for devices with system gestures navigation
+1. Fix behaviour in scrollable containers
+
 ## Sample
 
 The sample is on `app` module

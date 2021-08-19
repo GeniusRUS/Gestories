@@ -2,19 +2,20 @@ package com.genius.example
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnPreDraw
+import androidx.fragment.app.Fragment
 import com.genius.gestories.InstagramGestureDetector
 
-class MainActivity : AppCompatActivity(), InstagramGestureDetector.ActionsListener {
+class StaticFragment : Fragment(R.layout.static_fragment), InstagramGestureDetector.ActionsListener {
+
     @SuppressLint("ClickableViewAccessibility")
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        val image = findViewById<ImageView>(R.id.image)
-        val previous = findViewById<ImageView>(R.id.previous)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val image = view.findViewById<ImageView>(R.id.image)
+        val previous = view.findViewById<ImageView>(R.id.previous)
         val detector = InstagramGestureDetector(this)
         image.setOnTouchListener(detector)
         image.doOnPreDraw {
@@ -28,18 +29,18 @@ class MainActivity : AppCompatActivity(), InstagramGestureDetector.ActionsListen
     }
 
     override fun onPauseProgress() {
-        Toast.makeText(this, "PAUSE", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), "PAUSE", Toast.LENGTH_SHORT).show()
     }
 
     override fun onResumeProgress() {
-        Toast.makeText(this, "RESUME", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), "RESUME", Toast.LENGTH_SHORT).show()
     }
 
     override fun onShowNextStories() {
-        Toast.makeText(this, "NEXT", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), "NEXT", Toast.LENGTH_SHORT).show()
     }
 
     override fun onShowPreviousStories() {
-        Toast.makeText(this, "PREVIOUS", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), "PREVIOUS", Toast.LENGTH_SHORT).show()
     }
 }

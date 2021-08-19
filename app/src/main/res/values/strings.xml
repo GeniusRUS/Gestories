@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Gestories</string>
+    <string name="sample_button">Sample Button</string>
+    <string name="static_fragment">Static fragment</string>
+    <string name="scroll_fragment">Scroll fragment</string>
+    <string name="viewpager_fragment">ViewPager fragment</string>
+    <string name="bottomsheet_fragment">BottomSheet fragment</string>
 </resources>
