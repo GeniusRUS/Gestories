@@ -18,6 +18,7 @@ class InstagramGestureDetector(
     private var tapTime = 0L
     private var longTapRunnable: Runnable? = null
     private var isTapIsActive: Boolean = false
+    private var isProgressIsPaused: Boolean = false
 
     override fun onTouch(view: View, event: MotionEvent): Boolean {
         return when (event.action) {
@@ -29,6 +30,7 @@ class InstagramGestureDetector(
                     override fun run() {
                         if (!isTapIsActive) return
                         actionsListener?.onPauseProgress()
+                        isProgressIsPaused = true
                     }
                 }
                 longTapRunnable?.let { runnable ->
@@ -38,6 +40,7 @@ class InstagramGestureDetector(
             }
             MotionEvent.ACTION_UP -> {
                 isTapIsActive = false
+                isProgressIsPaused = false
                 if (!isRegularTap(tapTime)) {
                     actionsListener?.onResumeProgress()
                     true
@@ -51,9 +54,11 @@ class InstagramGestureDetector(
             }
             MotionEvent.ACTION_CANCEL -> {
                 isTapIsActive = false
-                isRegularTap(tapTime).apply {
-                    actionsListener?.onShowNextStories()
+                if (isProgressIsPaused) {
+                    actionsListener?.onResumeProgress()
+                    isProgressIsPaused = false
                 }
+                true
             }
             else -> {
                 false

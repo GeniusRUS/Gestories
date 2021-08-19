@@ -2,23 +2,13 @@ package com.genius.example
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.core.view.doOnPreDraw
+import androidx.fragment.app.Fragment
 import com.genius.gestories.InstagramGestureDetector
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
-class BottomSheetDialogFragment : BottomSheetDialogFragment() {
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.bottomsheet_fragment_dialog, container, false)
-    }
+class ViewPagerActiveFragment : Fragment(R.layout.viewpager_active_fragment) {
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

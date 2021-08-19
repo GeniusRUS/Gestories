@@ -5,4 +5,9 @@
     <string name="scroll_fragment">Scroll fragment</string>
     <string name="viewpager_fragment">ViewPager fragment</string>
     <string name="bottomsheet_fragment">BottomSheet fragment</string>
+
+    <string name="stories_paused">Paused</string>
+    <string name="stories_resumed">Resumed</string>
+    <string name="stories_next">Next</string>
+    <string name="stories_previous">Previous</string>
 </resources>
