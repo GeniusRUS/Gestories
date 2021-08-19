@@ -7,6 +7,15 @@
 
 Android library for handling gestures on view like in Instagram Stories
 
+## Details
+
+Allows handling the following gestures:
+1. holding your finger and releasing it
+1. clicking on the left edge of the screen
+1. clicking on the main screen space
+
+You can also additionally track simple gestures of directions (up, down, left, right)
+
 ## Usage
 
 Artifact is publishing to Maven Central. You can add this repository to your project with:
@@ -16,7 +25,7 @@ repositories {
 }
 ```
 
-Add to your .gradle file:
+Add to your app-level `build.gradle` file:
 ```gradle
 implementation "io.github.geniusrus:gestories:$latest_version"
 ```
