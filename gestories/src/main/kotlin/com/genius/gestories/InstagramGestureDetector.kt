@@ -6,11 +6,15 @@ import android.os.Handler
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
+import androidx.annotation.StringDef
+import kotlin.math.abs
 
-class InstagramGestureDetector(
+class InstagramGestureDetector @JvmOverloads constructor(
     private val actionsListener: ActionsListener? = null,
+    private val gestureListener: GestureListener? = null,
     private val timeToDetectLongTap: Long = ViewConfiguration.getLongPressTimeout().toLong(),
-    private val zoneOfPreviousStories: Rect? = null
+    private val zoneOfPreviousStories: Rect? = null,
+    private val distanceToSwipeDetect: Float = 250F
 ) : View.OnTouchListener {
 
     private val pointOfFirstTouch: PointF = PointF()
@@ -39,9 +43,16 @@ class InstagramGestureDetector(
                 true
             }
             MotionEvent.ACTION_UP -> {
-                isTapIsActive = false
-                isProgressIsPaused = false
-                if (!isRegularTap(tapTime)) {
+                val eventResult = if (isTapIsActive && event.isGestureIsSwipe()) {
+                    when (event.swipeDirection()) {
+                        TOP -> gestureListener?.onSwipeToUp()
+                        DOWN -> gestureListener?.onSwipeToDown()
+                        RIGHT -> gestureListener?.onSwipeToRight()
+                        LEFT -> gestureListener?.onSwipeToLeft()
+                        else -> Unit
+                    }
+                    true
+                } else if (!isRegularTap(tapTime)) {
                     actionsListener?.onResumeProgress()
                     true
                 } else if (isInPreviousZoneTap(view, event.x, event.y)) {
@@ -51,14 +62,24 @@ class InstagramGestureDetector(
                     actionsListener?.onShowNextStories()
                     view.performClick()
                 }
+                isTapIsActive = false
+                isProgressIsPaused = false
+                eventResult
             }
             MotionEvent.ACTION_CANCEL -> {
-                isTapIsActive = false
                 if (isProgressIsPaused) {
                     actionsListener?.onResumeProgress()
                     isProgressIsPaused = false
                 }
+                isTapIsActive = false
                 true
+            }
+            MotionEvent.ACTION_MOVE -> {
+                val isSwipe = event.isGestureIsSwipe()
+                if (isSwipe && isProgressIsPaused) {
+                    isTapIsActive = false
+                }
+                isSwipe
             }
             else -> {
                 false
@@ -88,10 +109,55 @@ class InstagramGestureDetector(
         return time + timeToDetectLongTap > System.currentTimeMillis()
     }
 
+    /**
+     * Detects that is current gesture is the swipe
+     * Difference from start point must be greater that [distanceToSwipeDetect]
+     * @receiver is that current [MotionEvent] of end current gesture
+     * @return is the gesture is swipe or not
+     */
+    private fun MotionEvent.isGestureIsSwipe(): Boolean {
+        return abs(pointOfFirstTouch.length() - PointF(x, y).length()) >= distanceToSwipeDetect
+    }
+
+    /**
+     * Detects in which side [SwipeOrientation] moving the current swipe
+     * Difference from start point must be greater that [distanceToSwipeDetect]
+     * @receiver is that current [MotionEvent] of end current gesture
+     * @return direction, one from [SwipeOrientation], in which side swipe is detected, or null
+     */
+    @SwipeOrientation
+    private fun MotionEvent.swipeDirection(): String? {
+        return when {
+            abs(x - pointOfFirstTouch.x) < distanceToSwipeDetect && y - pointOfFirstTouch.y <= distanceToSwipeDetect -> TOP
+            abs(x - pointOfFirstTouch.x) < distanceToSwipeDetect && y - pointOfFirstTouch.y >= distanceToSwipeDetect -> DOWN
+            x - pointOfFirstTouch.x >= distanceToSwipeDetect && abs(y - pointOfFirstTouch.y) < distanceToSwipeDetect -> RIGHT
+            x - pointOfFirstTouch.x <= -distanceToSwipeDetect && abs(y - pointOfFirstTouch.y) < distanceToSwipeDetect -> LEFT
+            else -> null
+        }
+    }
+
+    @StringDef(TOP, DOWN, RIGHT, LEFT)
+    @Retention(AnnotationRetention.SOURCE)
+    private annotation class SwipeOrientation
+
     interface ActionsListener {
         fun onShowPreviousStories()
         fun onShowNextStories()
         fun onPauseProgress()
         fun onResumeProgress()
+    }
+
+    interface GestureListener {
+        fun onSwipeToRight()
+        fun onSwipeToLeft()
+        fun onSwipeToUp()
+        fun onSwipeToDown()
+    }
+
+    private companion object {
+        private const val TOP = "top"
+        private const val DOWN = "down"
+        private const val RIGHT = "right"
+        private const val LEFT = "left"
     }
 }
