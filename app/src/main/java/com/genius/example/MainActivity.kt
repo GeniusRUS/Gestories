@@ -1,10 +1,11 @@
 package com.genius.example
 
 import android.annotation.SuppressLint
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.doOnPreDraw
 import com.genius.gestories.InstagramGestureDetector
 
 class MainActivity : AppCompatActivity(), InstagramGestureDetector.ActionsListener {
@@ -13,8 +14,17 @@ class MainActivity : AppCompatActivity(), InstagramGestureDetector.ActionsListen
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val image = findViewById<ImageView>(R.id.image)
+        val previous = findViewById<ImageView>(R.id.previous)
         val detector = InstagramGestureDetector(this)
         image.setOnTouchListener(detector)
+        image.doOnPreDraw {
+            previous.setPadding(
+                (image.width / 100F * 33F).toInt(),
+                0,
+                0,
+                0
+            )
+        }
     }
 
     override fun onPauseProgress() {
