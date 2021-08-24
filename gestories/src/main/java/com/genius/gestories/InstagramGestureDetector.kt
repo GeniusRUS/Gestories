@@ -12,6 +12,7 @@ import kotlin.math.abs
 class InstagramGestureDetector @JvmOverloads constructor(
     private val actionsListener: ActionsListener? = null,
     private val gestureListener: GestureListener? = null,
+    private val timeToDetectSingleTap: Long = ViewConfiguration.getPressedStateDuration().toLong(),
     private val timeToDetectLongTap: Long = ViewConfiguration.getLongPressTimeout().toLong(),
     private val zoneOfPreviousStories: Rect? = null,
     private val distanceToSwipeDetect: Float = 250F
@@ -20,6 +21,7 @@ class InstagramGestureDetector @JvmOverloads constructor(
     private val pointOfFirstTouch: PointF = PointF()
 
     private var tapTime = 0L
+    private var regularTapRunnable: Runnable? = null
     private var longTapRunnable: Runnable? = null
     private var isTapIsActive: Boolean = false
     private var isProgressIsPaused: Boolean = false
@@ -30,12 +32,17 @@ class InstagramGestureDetector @JvmOverloads constructor(
                 pointOfFirstTouch.set(event.x, event.y)
                 tapTime = System.currentTimeMillis()
                 isTapIsActive = true
-                longTapRunnable = object : Runnable {
-                    override fun run() {
-                        if (!isTapIsActive) return
-                        actionsListener?.onPauseProgress()
-                        isProgressIsPaused = true
-                    }
+                regularTapRunnable = Runnable {
+                    if (!isTapIsActive) return@Runnable
+                    actionsListener?.onPauseProgress()
+                    isProgressIsPaused = true
+                }
+                longTapRunnable = Runnable {
+                    if (!isTapIsActive) return@Runnable
+                    actionsListener?.onLongTapDetected()
+                }
+                regularTapRunnable?.let { runnable ->
+                    Handler(view.context.mainLooper).postDelayed(runnable, timeToDetectSingleTap)
                 }
                 longTapRunnable?.let { runnable ->
                     Handler(view.context.mainLooper).postDelayed(runnable, timeToDetectLongTap)
@@ -144,6 +151,7 @@ class InstagramGestureDetector @JvmOverloads constructor(
         fun onShowPreviousStories()
         fun onShowNextStories()
         fun onPauseProgress()
+        fun onLongTapDetected()
         fun onResumeProgress()
     }
 
