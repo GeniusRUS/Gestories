@@ -9,6 +9,11 @@ import android.view.ViewConfiguration
 import androidx.annotation.StringDef
 import kotlin.math.abs
 
+/**
+ * Instagram-like behaviour to handle gesture on stories view
+ *
+ * It must be used like smart [View.OnTouchListener] with attaching to view, with which the user will interact
+ */
 class InstagramGestureDetector @JvmOverloads constructor(
     private val actionsListener: ActionsListener? = null,
     private val gestureListener: GestureListener? = null,
@@ -21,8 +26,8 @@ class InstagramGestureDetector @JvmOverloads constructor(
     private val pointOfFirstTouch: PointF = PointF()
 
     private var tapTime = 0L
-    private var regularTapRunnable: Runnable? = null
-    private var longTapRunnable: Runnable? = null
+    private var regularTapRunnable: ClickRunnable? = null
+    private var longTapRunnable: ClickRunnable? = null
     private var isTapIsActive: Boolean = false
     private var isProgressIsPaused: Boolean = false
 
@@ -32,13 +37,11 @@ class InstagramGestureDetector @JvmOverloads constructor(
                 pointOfFirstTouch.set(event.x, event.y)
                 tapTime = System.currentTimeMillis()
                 isTapIsActive = true
-                regularTapRunnable = Runnable {
-                    if (!isTapIsActive) return@Runnable
+                regularTapRunnable = ClickRunnable(isTapIsActive) {
                     actionsListener?.onPauseProgress()
                     isProgressIsPaused = true
                 }
-                longTapRunnable = Runnable {
-                    if (!isTapIsActive) return@Runnable
+                longTapRunnable = ClickRunnable(isTapIsActive) {
                     actionsListener?.onLongTapDetected()
                 }
                 regularTapRunnable?.let { runnable ->
@@ -70,12 +73,16 @@ class InstagramGestureDetector @JvmOverloads constructor(
                     view.performClick()
                 }
                 isTapIsActive = false
+                regularTapRunnable?.isActive = false
+                longTapRunnable?.isActive = false
                 isProgressIsPaused = false
                 eventResult
             }
             MotionEvent.ACTION_CANCEL -> {
                 if (isProgressIsPaused) {
                     actionsListener?.onResumeProgress()
+                    regularTapRunnable?.isActive = false
+                    longTapRunnable?.isActive = false
                     isProgressIsPaused = false
                 }
                 isTapIsActive = false
@@ -84,6 +91,8 @@ class InstagramGestureDetector @JvmOverloads constructor(
             MotionEvent.ACTION_MOVE -> {
                 val isSwipe = event.isGestureIsSwipe()
                 if (isSwipe && isProgressIsPaused) {
+                    regularTapRunnable?.isActive = false
+                    longTapRunnable?.isActive = false
                     isTapIsActive = false
                 }
                 isSwipe
@@ -143,15 +152,59 @@ class InstagramGestureDetector @JvmOverloads constructor(
         }
     }
 
+    private class ClickRunnable(
+        var isActive: Boolean,
+        private val action: () -> Unit
+    ): Runnable {
+
+        override fun run() {
+            if (isActive) {
+                action.invoke()
+            }
+        }
+    }
+
     @StringDef(TOP, DOWN, RIGHT, LEFT)
     @Retention(AnnotationRetention.SOURCE)
     private annotation class SwipeOrientation
 
+    /**
+     * Main interface on Instagram like gestures
+     */
     interface ActionsListener {
+        /**
+         * Calls to show previous stories
+         *
+         * It is invoked on click to first 1/3 width of view, or it zone can be specified with [zoneOfPreviousStories]
+         */
         fun onShowPreviousStories()
+
+        /**
+         * Calls to show next stories
+         *
+         * It is invoked on click to the all remaining zone, exclude for previous stories, defined in [zoneOfPreviousStories]
+         */
         fun onShowNextStories()
+
+        /**
+         * Calls to pause of stories progress
+         *
+         * It is invoked after finger is tapping the screen, and after [timeToDetectSingleTap] milliseconds delay
+         */
         fun onPauseProgress()
+
+        /**
+         * Calls to hide the progress of stories or another interface to see it better
+         *
+         * It is invoked during long tap behaviour, and waiting [timeToDetectLongTap] milliseconds after finger is down on screen
+         */
         fun onLongTapDetected()
+
+        /**
+         * Calls to resume stories progress
+         *
+         * It is invoked after any events to stop interacting with stories: on finger up from screen or cancel gesture by moving finger on screen with much distance
+         */
         fun onResumeProgress()
     }
 
