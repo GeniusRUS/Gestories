@@ -38,11 +38,11 @@ class InstagramGestureDetector @JvmOverloads constructor(
                 tapTime = System.currentTimeMillis()
                 isTapIsActive = true
                 regularTapRunnable = ClickRunnable(isTapIsActive) {
-                    actionsListener?.onPauseProgress()
+                    actionsListener?.onActionReceive(GestureAction.PAUSE)
                     isProgressIsPaused = true
                 }
                 longTapRunnable = ClickRunnable(isTapIsActive) {
-                    actionsListener?.onLongTapDetected()
+                    actionsListener?.onActionReceive(GestureAction.LONG_TAP)
                 }
                 regularTapRunnable?.let { runnable ->
                     Handler(view.context.mainLooper).postDelayed(runnable, timeToDetectSingleTap)
@@ -54,22 +54,22 @@ class InstagramGestureDetector @JvmOverloads constructor(
             }
             MotionEvent.ACTION_UP -> {
                 val eventResult = if (isTapIsActive && event.isGestureIsSwipe()) {
-                    when (event.swipeDirection()) {
-                        TOP -> gestureListener?.onSwipeToUp()
-                        DOWN -> gestureListener?.onSwipeToDown()
-                        RIGHT -> gestureListener?.onSwipeToRight()
-                        LEFT -> gestureListener?.onSwipeToLeft()
+                    when (val direction = event.swipeDirection()) {
+                        SwipeDirection.TOP,
+                        SwipeDirection.DOWN,
+                        SwipeDirection.RIGHT,
+                        SwipeDirection.LEFT -> gestureListener?.onGestureSwipe(direction)
                         else -> Unit
                     }
                     true
                 } else if (!isRegularTap(tapTime)) {
-                    actionsListener?.onResumeProgress()
+                    actionsListener?.onActionReceive(GestureAction.RESUME)
                     true
                 } else if (isInPreviousZoneTap(view, event.x, event.y)) {
-                    actionsListener?.onShowPreviousStories()
+                    actionsListener?.onActionReceive(GestureAction.PREVIOUS)
                     view.performClick()
                 } else {
-                    actionsListener?.onShowNextStories()
+                    actionsListener?.onActionReceive(GestureAction.NEXT)
                     view.performClick()
                 }
                 isTapIsActive = false
@@ -80,7 +80,7 @@ class InstagramGestureDetector @JvmOverloads constructor(
             }
             MotionEvent.ACTION_CANCEL -> {
                 if (isProgressIsPaused) {
-                    actionsListener?.onResumeProgress()
+                    actionsListener?.onActionReceive(GestureAction.RESUME)
                     regularTapRunnable?.isActive = false
                     longTapRunnable?.isActive = false
                     isProgressIsPaused = false
@@ -136,18 +136,18 @@ class InstagramGestureDetector @JvmOverloads constructor(
     }
 
     /**
-     * Detects in which side [SwipeOrientation] moving the current swipe
+     * Detects in which side [SwipeDirection] moving the current swipe
      * Difference from start point must be greater that [distanceToSwipeDetect]
      * @receiver is that current [MotionEvent] of end current gesture
-     * @return direction, one from [SwipeOrientation], in which side swipe is detected, or null
+     * @return direction, one from [SwipeDirection], in which side swipe is detected, or null
      */
-    @SwipeOrientation
+    @SwipeDirection
     private fun MotionEvent.swipeDirection(): String? {
         return when {
-            abs(x - pointOfFirstTouch.x) < distanceToSwipeDetect && y - pointOfFirstTouch.y <= distanceToSwipeDetect -> TOP
-            abs(x - pointOfFirstTouch.x) < distanceToSwipeDetect && y - pointOfFirstTouch.y >= distanceToSwipeDetect -> DOWN
-            x - pointOfFirstTouch.x >= distanceToSwipeDetect && abs(y - pointOfFirstTouch.y) < distanceToSwipeDetect -> RIGHT
-            x - pointOfFirstTouch.x <= -distanceToSwipeDetect && abs(y - pointOfFirstTouch.y) < distanceToSwipeDetect -> LEFT
+            abs(x - pointOfFirstTouch.x) < distanceToSwipeDetect && y - pointOfFirstTouch.y <= distanceToSwipeDetect -> SwipeDirection.TOP
+            abs(x - pointOfFirstTouch.x) < distanceToSwipeDetect && y - pointOfFirstTouch.y >= distanceToSwipeDetect -> SwipeDirection.DOWN
+            x - pointOfFirstTouch.x >= distanceToSwipeDetect && abs(y - pointOfFirstTouch.y) < distanceToSwipeDetect -> SwipeDirection.RIGHT
+            x - pointOfFirstTouch.x <= -distanceToSwipeDetect && abs(y - pointOfFirstTouch.y) < distanceToSwipeDetect -> SwipeDirection.LEFT
             else -> null
         }
     }
@@ -164,61 +164,77 @@ class InstagramGestureDetector @JvmOverloads constructor(
         }
     }
 
-    @StringDef(TOP, DOWN, RIGHT, LEFT)
+    @StringDef(
+        SwipeDirection.TOP,
+        SwipeDirection.DOWN,
+        SwipeDirection.RIGHT,
+        SwipeDirection.LEFT
+    )
     @Retention(AnnotationRetention.SOURCE)
-    private annotation class SwipeOrientation
+    private annotation class SwipeDirection {
+        companion object {
+            const val TOP = "top"
+            const val DOWN = "down"
+            const val RIGHT = "right"
+            const val LEFT = "left"
+        }
+    }
+
+    @StringDef(
+        GestureAction.PREVIOUS,
+        GestureAction.NEXT,
+        GestureAction.PAUSE,
+        GestureAction.LONG_TAP,
+        GestureAction.RESUME
+    )
+    @Retention(AnnotationRetention.SOURCE)
+    annotation class GestureAction {
+        companion object {
+            /**
+             * Calls to show previous stories
+             *
+             * It is invoked on click to first 1/3 width of view, or it zone can be specified with [zoneOfPreviousStories]
+             */
+            const val PREVIOUS = "previous"
+
+            /**
+             * Calls to show next stories
+             *
+             * It is invoked on click to the all remaining zone, exclude for previous stories, defined in [zoneOfPreviousStories]
+             */
+            const val NEXT = "next"
+
+            /**
+             * Calls to pause of stories progress
+             *
+             * It is invoked after finger is tapping the screen, and after [timeToDetectSingleTap] milliseconds delay
+             */
+            const val PAUSE = "pause"
+
+            /**
+             * Calls to hide the progress of stories or another interface to see it better
+             *
+             * It is invoked during long tap behaviour, and waiting [timeToDetectLongTap] milliseconds after finger is down on screen
+             */
+            const val LONG_TAP = "long_tap"
+
+            /**
+             * Calls to resume stories progress
+             *
+             * It is invoked after any events to stop interacting with stories: on finger up from screen or cancel gesture by moving finger on screen with much distance
+             */
+            const val RESUME = "resume"
+        }
+    }
 
     /**
      * Main interface on Instagram like gestures
      */
     interface ActionsListener {
-        /**
-         * Calls to show previous stories
-         *
-         * It is invoked on click to first 1/3 width of view, or it zone can be specified with [zoneOfPreviousStories]
-         */
-        fun onShowPreviousStories()
-
-        /**
-         * Calls to show next stories
-         *
-         * It is invoked on click to the all remaining zone, exclude for previous stories, defined in [zoneOfPreviousStories]
-         */
-        fun onShowNextStories()
-
-        /**
-         * Calls to pause of stories progress
-         *
-         * It is invoked after finger is tapping the screen, and after [timeToDetectSingleTap] milliseconds delay
-         */
-        fun onPauseProgress()
-
-        /**
-         * Calls to hide the progress of stories or another interface to see it better
-         *
-         * It is invoked during long tap behaviour, and waiting [timeToDetectLongTap] milliseconds after finger is down on screen
-         */
-        fun onLongTapDetected()
-
-        /**
-         * Calls to resume stories progress
-         *
-         * It is invoked after any events to stop interacting with stories: on finger up from screen or cancel gesture by moving finger on screen with much distance
-         */
-        fun onResumeProgress()
+        fun onActionReceive(@GestureAction action: String)
     }
 
     interface GestureListener {
-        fun onSwipeToRight()
-        fun onSwipeToLeft()
-        fun onSwipeToUp()
-        fun onSwipeToDown()
-    }
-
-    private companion object {
-        private const val TOP = "top"
-        private const val DOWN = "down"
-        private const val RIGHT = "right"
-        private const val LEFT = "left"
+        fun onGestureSwipe(@SwipeDirection direction: String)
     }
 }
