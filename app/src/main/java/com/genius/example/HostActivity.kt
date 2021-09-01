@@ -16,29 +16,15 @@ class HostActivity : AppCompatActivity(R.layout.activity_main), InstagramGesture
         currentStatus = findViewById(R.id.current_status)
     }
 
-    override fun onPauseProgress() {
-        Log.d(TAG, "PAUSE")
-        currentStatus.setText(R.string.stories_paused)
-    }
-
-    override fun onResumeProgress() {
-        Log.d(TAG, "RESUME")
-        currentStatus.setText(R.string.stories_resumed)
-    }
-
-    override fun onShowNextStories() {
-        Log.d(TAG, "NEXT")
-        currentStatus.setText(R.string.stories_next)
-    }
-
-    override fun onShowPreviousStories() {
-        Log.d(TAG, "PREVIOUS")
-        currentStatus.setText(R.string.stories_previous)
-    }
-
-    override fun onLongTapDetected() {
-        Log.d(TAG, "LONG TAP")
-        currentStatus.setText(R.string.stories_long_tap)
+    override fun onActionReceive(action: String) {
+        Log.d(TAG, action)
+        when (action) {
+            InstagramGestureDetector.GestureAction.PAUSE -> currentStatus.setText(R.string.stories_paused)
+            InstagramGestureDetector.GestureAction.RESUME -> currentStatus.setText(R.string.stories_resumed)
+            InstagramGestureDetector.GestureAction.NEXT -> currentStatus.setText(R.string.stories_next)
+            InstagramGestureDetector.GestureAction.PREVIOUS -> currentStatus.setText(R.string.stories_previous)
+            InstagramGestureDetector.GestureAction.LONG_TAP -> currentStatus.setText(R.string.stories_long_tap)
+        }
     }
 
     private companion object {
