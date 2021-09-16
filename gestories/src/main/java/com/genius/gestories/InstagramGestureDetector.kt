@@ -171,7 +171,7 @@ class InstagramGestureDetector @JvmOverloads constructor(
         SwipeDirection.LEFT
     )
     @Retention(AnnotationRetention.SOURCE)
-    private annotation class SwipeDirection {
+    annotation class SwipeDirection {
         companion object {
             const val TOP = "top"
             const val DOWN = "down"
