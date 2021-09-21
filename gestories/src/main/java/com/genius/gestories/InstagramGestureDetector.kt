@@ -53,16 +53,7 @@ class InstagramGestureDetector @JvmOverloads constructor(
                 true
             }
             MotionEvent.ACTION_UP -> {
-                val eventResult = if (isTapIsActive && event.isGestureIsSwipe()) {
-                    when (val direction = event.swipeDirection()) {
-                        SwipeDirection.TOP,
-                        SwipeDirection.DOWN,
-                        SwipeDirection.RIGHT,
-                        SwipeDirection.LEFT -> gestureListener?.onGestureSwipe(direction)
-                        else -> Unit
-                    }
-                    true
-                } else if (!isRegularTap(tapTime)) {
+                val eventResult = if (!isRegularTap(tapTime)) {
                     actionsListener?.onActionReceive(GestureAction.RESUME)
                     true
                 } else if (isInPreviousZoneTap(view, event.x, event.y)) {
@@ -72,6 +63,17 @@ class InstagramGestureDetector @JvmOverloads constructor(
                     actionsListener?.onActionReceive(GestureAction.NEXT)
                     view.performClick()
                 }
+
+                if (isTapIsActive && event.isGestureIsSwipe()) {
+                    when (val direction = event.swipeDirection()) {
+                        SwipeDirection.TOP,
+                        SwipeDirection.DOWN,
+                        SwipeDirection.RIGHT,
+                        SwipeDirection.LEFT -> gestureListener?.onGestureSwipe(direction)
+                        else -> Unit
+                    }
+                }
+
                 isTapIsActive = false
                 regularTapRunnable?.isActive = false
                 longTapRunnable?.isActive = false
@@ -93,7 +95,6 @@ class InstagramGestureDetector @JvmOverloads constructor(
                 if (isSwipe && isProgressIsPaused) {
                     regularTapRunnable?.isActive = false
                     longTapRunnable?.isActive = false
-                    isTapIsActive = false
                 }
                 isSwipe
             }
