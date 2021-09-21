@@ -96,6 +96,12 @@ class InstagramGestureDetector @JvmOverloads constructor(
                     regularTapRunnable?.isActive = false
                     longTapRunnable?.isActive = false
                 }
+                gestureListener?.onSwipeProgress(
+                    PointF(
+                        event.x - pointOfFirstTouch.x,
+                        event.y - pointOfFirstTouch.y
+                    )
+                )
                 isSwipe
             }
             else -> {
@@ -235,7 +241,13 @@ class InstagramGestureDetector @JvmOverloads constructor(
         fun onActionReceive(@GestureAction action: String)
     }
 
+    /**
+     * Secondary interface to detect gestures on target view
+     * - [onGestureSwipe] is called on detection completed gestures in one of main [SwipeDirection]
+     * - [onSwipeProgress] is called on any pointer movement on target view
+     */
     interface GestureListener {
         fun onGestureSwipe(@SwipeDirection direction: String)
+        fun onSwipeProgress(offsetFromFirstPoint: PointF)
     }
 }
