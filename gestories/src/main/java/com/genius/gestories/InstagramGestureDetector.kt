@@ -7,6 +7,9 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import androidx.annotation.StringDef
+import androidx.core.view.OnApplyWindowInsetsListener
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import kotlin.math.abs
 
 /**
@@ -21,7 +24,7 @@ class InstagramGestureDetector @JvmOverloads constructor(
     private val timeToDetectLongTap: Long = ViewConfiguration.getLongPressTimeout().toLong(),
     private val zoneOfPreviousStories: Rect? = null,
     private val distanceToSwipeDetect: Float = 250F
-) : View.OnTouchListener {
+) : View.OnTouchListener, OnApplyWindowInsetsListener {
 
     private val pointOfFirstTouch: PointF = PointF()
 
@@ -30,10 +33,23 @@ class InstagramGestureDetector @JvmOverloads constructor(
     private var longTapRunnable: ClickRunnable? = null
     private var isTapIsActive: Boolean = false
     private var isProgressIsPaused: Boolean = false
+    private var insetsRect: Rect? = null
+
+    override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
+        val gestureInsets = insets.getInsets(WindowInsetsCompat.Type.systemGestures())
+        insetsRect = Rect(
+            gestureInsets.left,
+            gestureInsets.top,
+            v.measuredWidth - gestureInsets.right,
+            v.measuredHeight - gestureInsets.bottom
+        )
+        return insets
+    }
 
     override fun onTouch(view: View, event: MotionEvent): Boolean {
         return when (event.action) {
             MotionEvent.ACTION_DOWN -> {
+                if (isInSystemGestureZone(event.x, event.y)) return false
                 pointOfFirstTouch.set(event.x, event.y)
                 tapTime = System.currentTimeMillis()
                 isTapIsActive = true
@@ -130,6 +146,20 @@ class InstagramGestureDetector @JvmOverloads constructor(
      */
     private fun isRegularTap(time: Long): Boolean {
         return time + timeToDetectLongTap > System.currentTimeMillis()
+    }
+
+    /**
+     * Detects that is current touch is start on system gesture zone
+     * This is usually will be useful on devices with API 30+ with gesture system navigation
+     * This function will not work without setting [androidx.core.view.WindowCompat.setDecorFitsSystemWindows] to false
+     * @param x - horizontal coordinate of touch
+     * @param y - vertical coordinate of touch
+     * @return is in touch in system gesture zone
+     */
+    private fun isInSystemGestureZone(x: Float, y: Float): Boolean {
+        return insetsRect?.let { rect ->
+            rect.left >= x || rect.right <= x || rect.top >= y || rect.bottom <= y
+        } ?: return false
     }
 
     /**
@@ -249,5 +279,19 @@ class InstagramGestureDetector @JvmOverloads constructor(
     interface GestureListener {
         fun onGestureSwipe(@SwipeDirection direction: String)
         fun onSwipeProgress(offsetFromFirstPoint: PointF)
+    }
+
+    companion object {
+        @JvmStatic
+        fun View.attachDetector(instagramGestureDetector: InstagramGestureDetector) {
+            setOnTouchListener(instagramGestureDetector)
+            ViewCompat.setOnApplyWindowInsetsListener(this, instagramGestureDetector)
+        }
+
+        @JvmStatic
+        fun View.detachDetector() {
+            setOnTouchListener(null)
+            ViewCompat.setOnApplyWindowInsetsListener(this, null)
+        }
     }
 }
