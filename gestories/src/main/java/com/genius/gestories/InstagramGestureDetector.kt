@@ -69,15 +69,23 @@ class InstagramGestureDetector @JvmOverloads constructor(
                 true
             }
             MotionEvent.ACTION_UP -> {
-                val eventResult = if (!isRegularTap(tapTime)) {
-                    actionsListener?.onActionReceive(GestureAction.RESUME)
-                    true
-                } else if (isInPreviousZoneTap(view, event.x, event.y)) {
-                    actionsListener?.onActionReceive(GestureAction.PREVIOUS)
-                    view.performClick()
-                } else {
-                    actionsListener?.onActionReceive(GestureAction.NEXT)
-                    view.performClick()
+                val isLongClick = isLongTap(tapTime)
+                val eventResult = when {
+                    isLongClick || (event.isGestureIsSwipe() && gestureListener != null) -> {
+                        actionsListener?.onActionReceive(GestureAction.RESUME)
+                        if (isLongClick) view.performLongClick()
+                        true
+                    }
+                    isInPreviousZoneTap(view, event.x, event.y) -> {
+                        actionsListener?.onActionReceive(GestureAction.PREVIOUS)
+                        view.performClick()
+                        true
+                    }
+                    else -> {
+                        actionsListener?.onActionReceive(GestureAction.NEXT)
+                        view.performClick()
+                        true
+                    }
                 }
 
                 if (isTapIsActive && event.isGestureIsSwipe()) {
@@ -140,12 +148,12 @@ class InstagramGestureDetector @JvmOverloads constructor(
     }
 
     /**
-     * Detects that tap is regular single tap
+     * Detects that tap is long single tap
      * @param time - time of current touch event, when finger is holding on screen
-     * @return is the tap regular or not
+     * @return is the tap long or not
      */
-    private fun isRegularTap(time: Long): Boolean {
-        return time + timeToDetectLongTap > System.currentTimeMillis()
+    private fun isLongTap(time: Long): Boolean {
+        return time + timeToDetectLongTap < System.currentTimeMillis()
     }
 
     /**
@@ -277,8 +285,8 @@ class InstagramGestureDetector @JvmOverloads constructor(
      * - [onSwipeProgress] is called on any pointer movement on target view
      */
     interface GestureListener {
-        fun onGestureSwipe(@SwipeDirection direction: String)
-        fun onSwipeProgress(offsetFromFirstPoint: PointF)
+        fun onGestureSwipe(@SwipeDirection direction: String) {}
+        fun onSwipeProgress(offsetFromFirstPoint: PointF) {}
     }
 
     companion object {
