@@ -12,10 +12,10 @@ tasks.dokkaJavadoc.configure {
 }
 
 android {
-    compileSdk = 30
+    compileSdk = 33
     defaultConfig {
         minSdk = 16
-        targetSdk = 30
+        targetSdk = 33
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -31,7 +31,7 @@ android {
     }
 
     lint {
-        isAbortOnError = false
+        abortOnError = false
     }
 
     buildFeatures {
@@ -40,7 +40,7 @@ android {
 }
 
 dependencies {
-    implementation("androidx.appcompat:appcompat:1.3.1")
+    implementation("androidx.appcompat:appcompat:1.5.1")
     implementation(kotlin("stdlib-jdk7", KotlinCompilerVersion.VERSION))
 
     testImplementation("junit:junit:4.13.2")
