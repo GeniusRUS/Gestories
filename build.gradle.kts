@@ -1,15 +1,14 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("com.android.tools.build:gradle:7.3.1")
-        classpath(kotlin("gradle-plugin", version = "1.5.31"))
-        classpath("org.jetbrains.dokka:dokka-gradle-plugin:1.6.10")
-        classpath("com.vanniktech:gradle-maven-publish-plugin:0.21.0")
-        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.5.3")
-    }
+plugins {
+    id("com.android.application") version "8.0.1" apply false
+    id("com.android.library") version "8.0.1" apply false
+    id("org.jetbrains.kotlin.android") version "1.8.21" apply false
+    id("org.jetbrains.dokka") version "1.8.10" apply false
+    id("com.vanniktech.maven.publish") version "0.25.1" apply false
+    id("androidx.navigation.safeargs.kotlin") version "2.5.3" apply false
+}
+
+subprojects {
+    apply(plugin = "org.jetbrains.dokka")
 }
 
 task<Delete>("clean") {
